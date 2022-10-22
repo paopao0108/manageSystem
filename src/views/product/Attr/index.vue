@@ -44,7 +44,7 @@
 
           <el-table-column prop="prop" label="属性值名称">
             <template slot-scope="{ row, $index }">
-              <el-input v-if="row.flag" v-model="row.valueName" placeholder="请输入属性值名称" size="mini" @blur="toLook(row)" />
+              <el-input v-if="row.flag" v-model="row.valueName" placeholder="请输入属性值名称" size="mini" @blur="toLook(row)" @keyup.native.enter="toLook(row)" />
               <span v-else style="display: block" @click="row.flag = true">{{ row.valueName }}</span>
             </template>
           </el-table-column>
@@ -144,8 +144,9 @@ export default {
       };
     },
 
-    // 点击 修改 按钮时，1 需要隐藏table 2 需要将当前行的属性赋值给attrInfo
+    // 点击 修改 按钮时，1 需要隐藏table； 2 需要将当前行的属性赋值给attrInfo；3 已存在的属性值没有flag属性，因此无法直接修改原来的属性值名称，需要为其添加flag属性
     updateAttr(row) {
+      // 1 隐藏table
       this.isShowTable = false;
       console.log('当前行的属性信息', row);
       /* 需要将row里面的数据拷贝给 this.attrInfo 进行展示
@@ -166,7 +167,17 @@ export default {
           id: 113          // 服务器返回的row里面带有属性名ID
         }
       */
+      // 2 当前行的属性赋值给attrInfo
       this.attrInfo = cloneDeep(row);
+
+      // 3 为原有属性值添加flag属性，以便可以编辑修改
+      this.attrInfo.attrValueList.forEach(item => {
+        // 不能直接为item增加属性flag，视图并没有跟着变化
+        // item.flag = false;
+        // 因为vue无法检测到，所以flag不是响应式数据，vue提供了$set方法用于解决这个问题
+        // $set(对象，)
+        this.$set(item, 'flag', false);
+      });
     },
 
     // 输入属性值时失去焦点，切换为查看模式
